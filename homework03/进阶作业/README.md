@@ -5,11 +5,14 @@
 
 ​			模型性能如下：
 
-​			![image-20230211210622232](C:/Users/HeHang/AppData/Roaming/Typora/typora-user-images/image-20230211210622232.png)
+|   Class    |  IoU  |  Acc  |
+| :--------: | :---: | :---: |
+| background | 90.28 | 94.53 |
+|  building  | 66.12 | 80.86 |
 
  3. 其他作业相关的文件（log文件等）
 
-    a.数据集
+    a.数据集（卫星建筑物：https://www.kaggle.com/datasets/hyyyrwang/buildings-dataset）
 
     ​		划分训练集和数据集【scripts/split_data.py】
 
@@ -31,7 +34,7 @@
 
     ​		imgs/连通域分析04.png、imgs/测试集标注05.png、imgs/测试集标注06.png
 
-     		imgs/测试集标注07.png、imgs/混淆矩阵.jpg
+    ​		imgs/测试集标注07.png、imgs/混淆矩阵.jpg
 
     d.评估
 
