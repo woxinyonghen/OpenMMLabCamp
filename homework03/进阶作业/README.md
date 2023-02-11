@@ -12,7 +12,7 @@
 
  3. 其他作业相关的文件（log文件等）
 
-    a.数据集（卫星建筑物：https://www.kaggle.com/datasets/hyyyrwang/buildings-dataset）
+    a.数据集  卫星建筑物：https://www.kaggle.com/datasets/hyyyrwang/buildings-dataset
 
     ​		划分训练集和数据集【scripts/split_data.py】
 
