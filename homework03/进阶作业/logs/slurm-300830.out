@@ -1,0 +1,915 @@
+02/11 20:19:15 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: linux
+    Python: 3.7.16 (default, Jan 17 2023, 22:20:44) [GCC 11.2.0]
+    CUDA available: True
+    numpy_random_seed: 0
+    GPU 0: NVIDIA GeForce RTX 3090
+    CUDA_HOME: /data/apps/cuda/11.3
+    NVCC: Cuda compilation tools, release 11.3, V11.3.58
+    GCC: gcc (GCC) 9.3.0
+    PyTorch: 1.10.1+cu113
+    PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) Math Kernel Library Version 2020.0.0 Product Build 20191122 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.2.3 (Git Hash 7336ca9f055cf1bfa13efb658fe15dc9b41f0740)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.3
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86
+  - CuDNN 8.2
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.3, CUDNN_VERSION=8.2.0, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DEDGE_PROFILER_USE_KINETO -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.10.1, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+    TorchVision: 0.11.2+cu113
+    OpenCV: 4.7.0
+    MMEngine: 0.5.0
+
+Runtime environment:
+    cudnn_benchmark: True
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: 0
+    Distributed launcher: none
+    Distributed training: False
+    GPU number: 1
+------------------------------------------------------------
+
+02/11 20:19:15 - mmengine - INFO - Config:
+norm_cfg = dict(type='BN', requires_grad=True)
+data_preprocessor = dict(
+    type='SegDataPreProcessor',
+    mean=[123.675, 116.28, 103.53],
+    std=[58.395, 57.12, 57.375],
+    bgr_to_rgb=True,
+    pad_val=0,
+    seg_pad_val=255,
+    size=(512, 1024))
+model = dict(
+    type='EncoderDecoder',
+    data_preprocessor=dict(
+        type='SegDataPreProcessor',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        bgr_to_rgb=True,
+        pad_val=0,
+        seg_pad_val=255,
+        size=(256, 256)),
+    pretrained='open-mmlab://resnet50_v1c',
+    backbone=dict(
+        type='ResNetV1c',
+        depth=50,
+        num_stages=4,
+        out_indices=(0, 1, 2, 3),
+        dilations=(1, 1, 2, 4),
+        strides=(1, 2, 1, 1),
+        norm_cfg=dict(type='BN', requires_grad=True),
+        norm_eval=False,
+        style='pytorch',
+        contract_dilation=True),
+    decode_head=dict(
+        type='PSPHead',
+        in_channels=2048,
+        in_index=3,
+        channels=512,
+        pool_scales=(1, 2, 3, 6),
+        dropout_ratio=0.1,
+        num_classes=2,
+        norm_cfg=dict(type='BN', requires_grad=True),
+        align_corners=False,
+        loss_decode=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
+    auxiliary_head=dict(
+        type='FCNHead',
+        in_channels=1024,
+        in_index=2,
+        channels=256,
+        num_convs=1,
+        concat_input=False,
+        dropout_ratio=0.1,
+        num_classes=2,
+        norm_cfg=dict(type='BN', requires_grad=True),
+        align_corners=False,
+        loss_decode=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=0.4)),
+    train_cfg=dict(),
+    test_cfg=dict(mode='whole'))
+dataset_type = 'StanfordBackgroundDataset'
+data_root = '../data/Satellite_Building-dataset'
+crop_size = (256, 256)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations'),
+    dict(
+        type='RandomResize',
+        scale=(320, 240),
+        ratio_range=(0.5, 2.0),
+        keep_ratio=True),
+    dict(type='RandomCrop', crop_size=(256, 256), cat_max_ratio=0.75),
+    dict(type='RandomFlip', prob=0.5),
+    dict(type='PackSegInputs')
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='Resize', scale=(320, 240), keep_ratio=True),
+    dict(type='LoadAnnotations'),
+    dict(type='PackSegInputs')
+]
+img_ratios = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
+tta_pipeline = [
+    dict(type='LoadImageFromFile', file_client_args=dict(backend='disk')),
+    dict(
+        type='TestTimeAug',
+        transforms=[[{
+            'type': 'Resize',
+            'scale_factor': 0.5,
+            'keep_ratio': True
+        }, {
+            'type': 'Resize',
+            'scale_factor': 0.75,
+            'keep_ratio': True
+        }, {
+            'type': 'Resize',
+            'scale_factor': 1.0,
+            'keep_ratio': True
+        }, {
+            'type': 'Resize',
+            'scale_factor': 1.25,
+            'keep_ratio': True
+        }, {
+            'type': 'Resize',
+            'scale_factor': 1.5,
+            'keep_ratio': True
+        }, {
+            'type': 'Resize',
+            'scale_factor': 1.75,
+            'keep_ratio': True
+        }],
+                    [{
+                        'type': 'RandomFlip',
+                        'prob': 0.0,
+                        'direction': 'horizontal'
+                    }, {
+                        'type': 'RandomFlip',
+                        'prob': 1.0,
+                        'direction': 'horizontal'
+                    }], [{
+                        'type': 'LoadAnnotations'
+                    }], [{
+                        'type': 'PackSegInputs'
+                    }]])
+]
+train_dataloader = dict(
+    batch_size=8,
+    num_workers=2,
+    persistent_workers=True,
+    sampler=dict(type='InfiniteSampler', shuffle=True),
+    dataset=dict(
+        type='StanfordBackgroundDataset',
+        data_root='../data/Satellite_Building-dataset',
+        data_prefix=dict(img_path='images', seg_map_path='masks'),
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='LoadAnnotations'),
+            dict(
+                type='RandomResize',
+                scale=(320, 240),
+                ratio_range=(0.5, 2.0),
+                keep_ratio=True),
+            dict(type='RandomCrop', crop_size=(256, 256), cat_max_ratio=0.75),
+            dict(type='RandomFlip', prob=0.5),
+            dict(type='PackSegInputs')
+        ],
+        ann_file='splits/train.txt'))
+val_dataloader = dict(
+    batch_size=1,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(type='DefaultSampler', shuffle=False),
+    dataset=dict(
+        type='StanfordBackgroundDataset',
+        data_root='../data/Satellite_Building-dataset',
+        data_prefix=dict(img_path='images', seg_map_path='masks'),
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', scale=(320, 240), keep_ratio=True),
+            dict(type='LoadAnnotations'),
+            dict(type='PackSegInputs')
+        ],
+        ann_file='splits/val.txt'))
+test_dataloader = dict(
+    batch_size=1,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(type='DefaultSampler', shuffle=False),
+    dataset=dict(
+        type='StanfordBackgroundDataset',
+        data_root='../data/Satellite_Building-dataset',
+        data_prefix=dict(img_path='images', seg_map_path='masks'),
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='Resize', scale=(320, 240), keep_ratio=True),
+            dict(type='LoadAnnotations'),
+            dict(type='PackSegInputs')
+        ],
+        ann_file='splits/val.txt'))
+val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU'])
+test_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU'])
+default_scope = 'mmseg'
+env_cfg = dict(
+    cudnn_benchmark=True,
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
+    dist_cfg=dict(backend='nccl'))
+vis_backends = [dict(type='LocalVisBackend')]
+visualizer = dict(
+    type='SegLocalVisualizer',
+    vis_backends=[dict(type='LocalVisBackend')],
+    name='visualizer')
+log_processor = dict(by_epoch=False)
+log_level = 'INFO'
+load_from = '../checkpoints/pspnet_r50-d8_512x1024_40k_cityscapes_20200605_003338-2966598c.pth'
+resume = False
+tta_model = dict(type='SegTTAModel')
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005)
+optim_wrapper = dict(
+    type='OptimWrapper',
+    optimizer=dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005),
+    clip_grad=None)
+param_scheduler = [
+    dict(
+        type='PolyLR',
+        eta_min=0.0001,
+        power=0.9,
+        begin=0,
+        end=40000,
+        by_epoch=False)
+]
+train_cfg = dict(type='IterBasedTrainLoop', max_iters=10000, val_interval=500)
+val_cfg = dict(type='ValLoop')
+test_cfg = dict(type='TestLoop')
+default_hooks = dict(
+    timer=dict(type='IterTimerHook'),
+    logger=dict(type='LoggerHook', interval=100, log_metric_by_epoch=False),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    checkpoint=dict(type='CheckpointHook', by_epoch=False, interval=1000),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    visualization=dict(type='SegVisualizationHook'))
+work_dir = '../work/satellite_building'
+randomness = dict(seed=0)
+
+02/11 20:19:15 - mmengine - WARNING - The "visualizer" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:15 - mmengine - WARNING - The "vis_backend" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:16 - mmengine - WARNING - The "model" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+/data/run01/scz0ara/OpenMMLabCamp/homework3/mmsegmentation/mmseg/models/backbones/resnet.py:431: UserWarning: DeprecationWarning: pretrained is a deprecated, please use "init_cfg" instead
+  warnings.warn('DeprecationWarning: pretrained is a deprecated, '
+/data/run01/scz0ara/OpenMMLabCamp/homework3/mmsegmentation/mmseg/models/decode_heads/decode_head.py:120: UserWarning: For binary segmentation, we suggest using`out_channels = 1` to define the outputchannels of segmentor, and use `threshold`to convert `seg_logits` into a predictionapplying a threshold
+  warnings.warn('For binary segmentation, we suggest using'
+/data/run01/scz0ara/OpenMMLabCamp/homework3/mmsegmentation/mmseg/models/builder.py:36: UserWarning: ``build_loss`` would be deprecated soon, please use ``mmseg.registry.MODELS.build()`` 
+  warnings.warn('``build_loss`` would be deprecated soon, please use '
+/data/run01/scz0ara/OpenMMLabCamp/homework3/mmsegmentation/mmseg/models/losses/cross_entropy_loss.py:236: UserWarning: Default ``avg_non_ignore`` is False, if you would like to ignore the certain label and average loss over non-ignore labels, which is the same with PyTorch official cross_entropy, set ``avg_non_ignore=True``.
+  'Default ``avg_non_ignore`` is False, if you would like to '
+02/11 20:19:22 - mmengine - INFO - Distributed training is not used, all SyncBatchNorm (SyncBN) layers in the model will be automatically reverted to BatchNormXd layers if they are used.
+02/11 20:19:22 - mmengine - WARNING - The "hook" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+/data/run01/scz0ara/OpenMMLabCamp/homework3/mmsegmentation/mmseg/engine/hooks/visualization_hook.py:61: UserWarning: The draw is False, it means that the hook for visualization will not take effect. The results will NOT be visualized or stored.
+  warnings.warn('The draw is False, it means that the '
+02/11 20:19:22 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) SegVisualizationHook               
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) SegVisualizationHook               
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) SegVisualizationHook               
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+02/11 20:19:22 - mmengine - WARNING - The "loop" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:22 - mmengine - WARNING - The "dataset" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:22 - mmengine - WARNING - The "transform" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:22 - mmengine - WARNING - The "data sampler" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:23 - mmengine - WARNING - The "optimizer wrapper constructor" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:23 - mmengine - WARNING - The "optimizer" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:23 - mmengine - WARNING - The "optim_wrapper" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:23 - mmengine - WARNING - The "parameter scheduler" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:23 - mmengine - WARNING - The "metric" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+/data/run01/scz0ara/OpenMMLabCamp/homework3/mmengine/mmengine/evaluator/metric.py:47: UserWarning: The prefix is not set in metric class IoUMetric.
+  warnings.warn('The prefix is not set in metric class '
+02/11 20:19:23 - mmengine - WARNING - The "weight initializer" registry in mmseg did not set import location. Fallback to call `mmseg.utils.register_all_modules` instead.
+02/11 20:19:23 - mmengine - INFO - load model from: open-mmlab://resnet50_v1c
+02/11 20:19:23 - mmengine - INFO - Loads checkpoint by openmmlab backend from path: open-mmlab://resnet50_v1c
+02/11 20:19:23 - mmengine - WARNING - The model and loaded state dict do not match exactly
+
+unexpected key in source state_dict: fc.weight, fc.bias
+
+Loads checkpoint by local backend from path: ../checkpoints/pspnet_r50-d8_512x1024_40k_cityscapes_20200605_003338-2966598c.pth
+The model and loaded state dict do not match exactly
+
+size mismatch for decode_head.conv_seg.weight: copying a param with shape torch.Size([19, 512, 1, 1]) from checkpoint, the shape in current model is torch.Size([2, 512, 1, 1]).
+size mismatch for decode_head.conv_seg.bias: copying a param with shape torch.Size([19]) from checkpoint, the shape in current model is torch.Size([2]).
+size mismatch for auxiliary_head.conv_seg.weight: copying a param with shape torch.Size([19, 256, 1, 1]) from checkpoint, the shape in current model is torch.Size([2, 256, 1, 1]).
+size mismatch for auxiliary_head.conv_seg.bias: copying a param with shape torch.Size([19]) from checkpoint, the shape in current model is torch.Size([2]).
+02/11 20:19:23 - mmengine - INFO - Load checkpoint from ../checkpoints/pspnet_r50-d8_512x1024_40k_cityscapes_20200605_003338-2966598c.pth
+02/11 20:19:23 - mmengine - INFO - Checkpoints will be saved to /data/run01/scz0ara/OpenMMLabCamp/homework3/mmsegmentation/work/satellite_building.
+02/11 20:19:40 - mmengine - INFO - Iter(train) [  100/10000]  lr: 9.9779e-03  eta: 0:27:44  time: 0.1370  data_time: 0.0043  memory: 11478  loss: 0.4201  decode.loss_ce: 0.3012  decode.acc_seg: 91.5000  aux.loss_ce: 0.1189  aux.acc_seg: 91.0544
+02/11 20:19:54 - mmengine - INFO - Iter(train) [  200/10000]  lr: 9.9557e-03  eta: 0:24:57  time: 0.1374  data_time: 0.0043  memory: 3614  loss: 0.3325  decode.loss_ce: 0.2362  decode.acc_seg: 89.4913  aux.loss_ce: 0.0963  aux.acc_seg: 89.1394
+02/11 20:20:08 - mmengine - INFO - Iter(train) [  300/10000]  lr: 9.9334e-03  eta: 0:23:52  time: 0.1372  data_time: 0.0044  memory: 3614  loss: 0.3116  decode.loss_ce: 0.2225  decode.acc_seg: 83.0222  aux.loss_ce: 0.0891  aux.acc_seg: 82.9557
+02/11 20:20:21 - mmengine - INFO - Iter(train) [  400/10000]  lr: 9.9111e-03  eta: 0:23:12  time: 0.1376  data_time: 0.0044  memory: 3614  loss: 0.3286  decode.loss_ce: 0.2351  decode.acc_seg: 87.8795  aux.loss_ce: 0.0935  aux.acc_seg: 87.6605
+02/11 20:20:35 - mmengine - INFO - Iter(train) [  500/10000]  lr: 9.8888e-03  eta: 0:22:44  time: 0.1381  data_time: 0.0045  memory: 3614  loss: 0.3974  decode.loss_ce: 0.2820  decode.acc_seg: 91.8062  aux.loss_ce: 0.1154  aux.acc_seg: 90.8568
+02/11 20:20:37 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:24  time: 0.0114  data_time: 0.0008  memory: 9323  
+02/11 20:20:39 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:17  time: 0.0208  data_time: 0.0008  memory: 799  
+02/11 20:20:40 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:13  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:20:41 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:11  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:20:42 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:09  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:20:43 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:20:44 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:06  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:20:46 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:05  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:20:47 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:20:48 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:20:49 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:20:50 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:20:50 - mmengine - INFO - per class results:
+02/11 20:20:50 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 87.88 | 97.82 |
+|  building  | 49.52 | 53.91 |
++------------+-------+-------+
+02/11 20:20:50 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 89.1700  mIoU: 68.7000  mAcc: 75.8700
+02/11 20:21:04 - mmengine - INFO - Iter(train) [  600/10000]  lr: 9.8665e-03  eta: 0:22:22  time: 0.1386  data_time: 0.0045  memory: 3614  loss: 0.3023  decode.loss_ce: 0.2162  decode.acc_seg: 87.5559  aux.loss_ce: 0.0861  aux.acc_seg: 87.3198
+02/11 20:21:04 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:21:18 - mmengine - INFO - Iter(train) [  700/10000]  lr: 9.8442e-03  eta: 0:22:03  time: 0.1389  data_time: 0.0048  memory: 3614  loss: 0.2555  decode.loss_ce: 0.1817  decode.acc_seg: 86.6769  aux.loss_ce: 0.0738  aux.acc_seg: 87.0187
+02/11 20:21:32 - mmengine - INFO - Iter(train) [  800/10000]  lr: 9.8218e-03  eta: 0:21:44  time: 0.1385  data_time: 0.0046  memory: 3614  loss: 0.2878  decode.loss_ce: 0.2051  decode.acc_seg: 86.8651  aux.loss_ce: 0.0827  aux.acc_seg: 88.6995
+02/11 20:21:46 - mmengine - INFO - Iter(train) [  900/10000]  lr: 9.7995e-03  eta: 0:21:27  time: 0.1386  data_time: 0.0045  memory: 3614  loss: 0.2926  decode.loss_ce: 0.2061  decode.acc_seg: 95.5787  aux.loss_ce: 0.0864  aux.acc_seg: 95.3019
+02/11 20:22:00 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:22:00 - mmengine - INFO - Iter(train) [ 1000/10000]  lr: 9.7772e-03  eta: 0:21:10  time: 0.1386  data_time: 0.0044  memory: 3614  loss: 0.2789  decode.loss_ce: 0.1974  decode.acc_seg: 94.8440  aux.loss_ce: 0.0815  aux.acc_seg: 94.2178
+02/11 20:22:00 - mmengine - INFO - Saving checkpoint at 1000 iterations
+02/11 20:22:02 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:13  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:22:03 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0119  data_time: 0.0009  memory: 799  
+02/11 20:22:04 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:22:05 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:22:06 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:22:08 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:07  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:22:09 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:22:10 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:22:11 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:22:12 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:22:13 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:22:15 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:22:15 - mmengine - INFO - per class results:
+02/11 20:22:15 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 88.75 | 96.48 |
+|  building  | 56.41 |  64.5 |
++------------+-------+-------+
+02/11 20:22:15 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 90.1800  mIoU: 72.5800  mAcc: 80.4900
+02/11 20:22:29 - mmengine - INFO - Iter(train) [ 1100/10000]  lr: 9.7549e-03  eta: 0:20:55  time: 0.1385  data_time: 0.0045  memory: 3614  loss: 0.3143  decode.loss_ce: 0.2241  decode.acc_seg: 89.2172  aux.loss_ce: 0.0902  aux.acc_seg: 88.6843
+02/11 20:22:43 - mmengine - INFO - Iter(train) [ 1200/10000]  lr: 9.7325e-03  eta: 0:20:40  time: 0.1389  data_time: 0.0045  memory: 3614  loss: 0.3013  decode.loss_ce: 0.2153  decode.acc_seg: 80.7676  aux.loss_ce: 0.0860  aux.acc_seg: 81.0710
+02/11 20:22:56 - mmengine - INFO - Iter(train) [ 1300/10000]  lr: 9.7102e-03  eta: 0:20:24  time: 0.1389  data_time: 0.0046  memory: 3614  loss: 0.3632  decode.loss_ce: 0.2585  decode.acc_seg: 87.7679  aux.loss_ce: 0.1047  aux.acc_seg: 87.6175
+02/11 20:23:10 - mmengine - INFO - Iter(train) [ 1400/10000]  lr: 9.6878e-03  eta: 0:20:09  time: 0.1390  data_time: 0.0046  memory: 3614  loss: 0.2806  decode.loss_ce: 0.1990  decode.acc_seg: 91.7906  aux.loss_ce: 0.0816  aux.acc_seg: 91.0581
+02/11 20:23:24 - mmengine - INFO - Iter(train) [ 1500/10000]  lr: 9.6655e-03  eta: 0:19:54  time: 0.1389  data_time: 0.0046  memory: 3614  loss: 0.3145  decode.loss_ce: 0.2228  decode.acc_seg: 87.8382  aux.loss_ce: 0.0917  aux.acc_seg: 87.6549
+02/11 20:23:25 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:23:27 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:23:28 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:23:29 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:23:30 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:23:31 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:23:32 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:23:33 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:23:35 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:23:36 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:23:37 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:23:38 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:23:38 - mmengine - INFO - per class results:
+02/11 20:23:38 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 89.05 | 95.48 |
+|  building  | 59.59 | 70.56 |
++------------+-------+-------+
+02/11 20:23:38 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 90.5700  mIoU: 74.3200  mAcc: 83.0200
+02/11 20:23:52 - mmengine - INFO - Iter(train) [ 1600/10000]  lr: 9.6431e-03  eta: 0:19:39  time: 0.1391  data_time: 0.0045  memory: 3614  loss: 0.2977  decode.loss_ce: 0.2104  decode.acc_seg: 88.2573  aux.loss_ce: 0.0873  aux.acc_seg: 88.7654
+02/11 20:24:06 - mmengine - INFO - Iter(train) [ 1700/10000]  lr: 9.6207e-03  eta: 0:19:24  time: 0.1388  data_time: 0.0045  memory: 3614  loss: 0.2787  decode.loss_ce: 0.1980  decode.acc_seg: 85.8998  aux.loss_ce: 0.0807  aux.acc_seg: 85.2292
+02/11 20:24:20 - mmengine - INFO - Iter(train) [ 1800/10000]  lr: 9.5983e-03  eta: 0:19:10  time: 0.1389  data_time: 0.0045  memory: 3614  loss: 0.2576  decode.loss_ce: 0.1844  decode.acc_seg: 91.6039  aux.loss_ce: 0.0733  aux.acc_seg: 91.5125
+02/11 20:24:34 - mmengine - INFO - Iter(train) [ 1900/10000]  lr: 9.5760e-03  eta: 0:18:55  time: 0.1388  data_time: 0.0046  memory: 3614  loss: 0.2792  decode.loss_ce: 0.1986  decode.acc_seg: 91.4232  aux.loss_ce: 0.0805  aux.acc_seg: 91.8532
+02/11 20:24:48 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:24:48 - mmengine - INFO - Iter(train) [ 2000/10000]  lr: 9.5536e-03  eta: 0:18:41  time: 0.1390  data_time: 0.0046  memory: 3614  loss: 0.2791  decode.loss_ce: 0.1968  decode.acc_seg: 89.6681  aux.loss_ce: 0.0823  aux.acc_seg: 89.8329
+02/11 20:24:48 - mmengine - INFO - Saving checkpoint at 2000 iterations
+02/11 20:24:50 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:24:51 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:24:52 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:24:53 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:24:54 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:24:55 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:24:57 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:24:58 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:24:59 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:25:00 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:25:01 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:25:02 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:25:02 - mmengine - INFO - per class results:
+02/11 20:25:02 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 88.48 | 92.98 |
+|  building  | 61.65 | 79.28 |
++------------+-------+-------+
+02/11 20:25:02 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 90.2800  mIoU: 75.0600  mAcc: 86.1300
+02/11 20:25:16 - mmengine - INFO - Iter(train) [ 2100/10000]  lr: 9.5312e-03  eta: 0:18:26  time: 0.1388  data_time: 0.0046  memory: 3614  loss: 0.2680  decode.loss_ce: 0.1902  decode.acc_seg: 87.0590  aux.loss_ce: 0.0778  aux.acc_seg: 87.2186
+02/11 20:25:30 - mmengine - INFO - Iter(train) [ 2200/10000]  lr: 9.5088e-03  eta: 0:18:12  time: 0.1390  data_time: 0.0046  memory: 3614  loss: 0.2565  decode.loss_ce: 0.1809  decode.acc_seg: 91.0872  aux.loss_ce: 0.0757  aux.acc_seg: 91.1757
+02/11 20:25:44 - mmengine - INFO - Iter(train) [ 2300/10000]  lr: 9.4864e-03  eta: 0:17:57  time: 0.1391  data_time: 0.0046  memory: 3614  loss: 0.2766  decode.loss_ce: 0.1957  decode.acc_seg: 90.2604  aux.loss_ce: 0.0809  aux.acc_seg: 90.5127
+02/11 20:25:58 - mmengine - INFO - Iter(train) [ 2400/10000]  lr: 9.4640e-03  eta: 0:17:43  time: 0.1390  data_time: 0.0045  memory: 3614  loss: 0.2815  decode.loss_ce: 0.1999  decode.acc_seg: 88.4684  aux.loss_ce: 0.0816  aux.acc_seg: 89.4430
+02/11 20:26:12 - mmengine - INFO - Iter(train) [ 2500/10000]  lr: 9.4416e-03  eta: 0:17:29  time: 0.1389  data_time: 0.0046  memory: 3614  loss: 0.2818  decode.loss_ce: 0.2013  decode.acc_seg: 93.6887  aux.loss_ce: 0.0805  aux.acc_seg: 93.3234
+02/11 20:26:13 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:26:14 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:26:15 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:26:17 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:26:18 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:26:19 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:07  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:26:20 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:26:21 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:26:22 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:26:23 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:26:25 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:26:26 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:26:26 - mmengine - INFO - per class results:
+02/11 20:26:26 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 88.89 | 93.72 |
+|  building  |  62.0 | 77.86 |
++------------+-------+-------+
+02/11 20:26:26 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 90.5900  mIoU: 75.4400  mAcc: 85.7900
+02/11 20:26:40 - mmengine - INFO - Iter(train) [ 2600/10000]  lr: 9.4191e-03  eta: 0:17:15  time: 0.1388  data_time: 0.0046  memory: 3614  loss: 0.2521  decode.loss_ce: 0.1789  decode.acc_seg: 82.0285  aux.loss_ce: 0.0732  aux.acc_seg: 80.8336
+02/11 20:26:54 - mmengine - INFO - Iter(train) [ 2700/10000]  lr: 9.3967e-03  eta: 0:17:00  time: 0.1390  data_time: 0.0046  memory: 3614  loss: 0.2794  decode.loss_ce: 0.1989  decode.acc_seg: 88.1835  aux.loss_ce: 0.0805  aux.acc_seg: 87.6361
+02/11 20:27:08 - mmengine - INFO - Iter(train) [ 2800/10000]  lr: 9.3743e-03  eta: 0:16:46  time: 0.1390  data_time: 0.0046  memory: 3614  loss: 0.2769  decode.loss_ce: 0.1961  decode.acc_seg: 94.0820  aux.loss_ce: 0.0807  aux.acc_seg: 93.9757
+02/11 20:27:22 - mmengine - INFO - Iter(train) [ 2900/10000]  lr: 9.3518e-03  eta: 0:16:32  time: 0.1393  data_time: 0.0047  memory: 3614  loss: 0.2235  decode.loss_ce: 0.1580  decode.acc_seg: 93.5429  aux.loss_ce: 0.0655  aux.acc_seg: 92.6789
+02/11 20:27:35 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:27:35 - mmengine - INFO - Iter(train) [ 3000/10000]  lr: 9.3294e-03  eta: 0:16:18  time: 0.1397  data_time: 0.0047  memory: 3614  loss: 0.2590  decode.loss_ce: 0.1845  decode.acc_seg: 88.1770  aux.loss_ce: 0.0745  aux.acc_seg: 88.1308
+02/11 20:27:35 - mmengine - INFO - Saving checkpoint at 3000 iterations
+02/11 20:27:38 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:13  time: 0.0119  data_time: 0.0010  memory: 799  
+02/11 20:27:39 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:27:40 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:27:41 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:27:42 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:27:43 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:07  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:27:44 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:27:46 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:27:47 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:27:48 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:27:49 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:27:50 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:27:50 - mmengine - INFO - per class results:
+02/11 20:27:50 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.32 | 95.52 |
+|  building  | 64.75 | 76.58 |
++------------+-------+-------+
+02/11 20:27:50 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.7800  mIoU: 77.5400  mAcc: 86.0500
+02/11 20:28:04 - mmengine - INFO - Iter(train) [ 3100/10000]  lr: 9.3069e-03  eta: 0:16:04  time: 0.1401  data_time: 0.0050  memory: 3614  loss: 0.2561  decode.loss_ce: 0.1811  decode.acc_seg: 94.4201  aux.loss_ce: 0.0750  aux.acc_seg: 94.2315
+02/11 20:28:18 - mmengine - INFO - Iter(train) [ 3200/10000]  lr: 9.2845e-03  eta: 0:15:50  time: 0.1393  data_time: 0.0046  memory: 3614  loss: 0.2626  decode.loss_ce: 0.1863  decode.acc_seg: 94.1348  aux.loss_ce: 0.0763  aux.acc_seg: 93.4358
+02/11 20:28:32 - mmengine - INFO - Iter(train) [ 3300/10000]  lr: 9.2620e-03  eta: 0:15:36  time: 0.1391  data_time: 0.0047  memory: 3614  loss: 0.2859  decode.loss_ce: 0.2048  decode.acc_seg: 93.7395  aux.loss_ce: 0.0810  aux.acc_seg: 93.8980
+02/11 20:28:46 - mmengine - INFO - Iter(train) [ 3400/10000]  lr: 9.2395e-03  eta: 0:15:22  time: 0.1399  data_time: 0.0046  memory: 3614  loss: 0.3146  decode.loss_ce: 0.2231  decode.acc_seg: 84.5915  aux.loss_ce: 0.0915  aux.acc_seg: 84.0836
+02/11 20:29:00 - mmengine - INFO - Iter(train) [ 3500/10000]  lr: 9.2171e-03  eta: 0:15:08  time: 0.1391  data_time: 0.0046  memory: 3614  loss: 0.3016  decode.loss_ce: 0.2144  decode.acc_seg: 94.0845  aux.loss_ce: 0.0872  aux.acc_seg: 94.3045
+02/11 20:29:01 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:29:03 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:29:04 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:29:05 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:29:06 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:29:07 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:07  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:29:08 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:29:10 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:29:11 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:29:12 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:29:13 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0118  data_time: 0.0008  memory: 799  
+02/11 20:29:14 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:29:14 - mmengine - INFO - per class results:
+02/11 20:29:14 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 89.65 | 96.79 |
+|  building  | 59.73 | 67.55 |
++------------+-------+-------+
+02/11 20:29:14 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.0200  mIoU: 74.6900  mAcc: 82.1700
+02/11 20:29:28 - mmengine - INFO - Iter(train) [ 3600/10000]  lr: 9.1946e-03  eta: 0:14:54  time: 0.1392  data_time: 0.0047  memory: 3614  loss: 0.2600  decode.loss_ce: 0.1852  decode.acc_seg: 91.5015  aux.loss_ce: 0.0748  aux.acc_seg: 91.5554
+02/11 20:29:42 - mmengine - INFO - Iter(train) [ 3700/10000]  lr: 9.1721e-03  eta: 0:14:40  time: 0.1397  data_time: 0.0047  memory: 3614  loss: 0.2821  decode.loss_ce: 0.1995  decode.acc_seg: 88.3372  aux.loss_ce: 0.0826  aux.acc_seg: 88.1118
+02/11 20:29:56 - mmengine - INFO - Iter(train) [ 3800/10000]  lr: 9.1496e-03  eta: 0:14:26  time: 0.1393  data_time: 0.0047  memory: 3614  loss: 0.2706  decode.loss_ce: 0.1926  decode.acc_seg: 89.7675  aux.loss_ce: 0.0780  aux.acc_seg: 89.7070
+02/11 20:30:10 - mmengine - INFO - Iter(train) [ 3900/10000]  lr: 9.1271e-03  eta: 0:14:12  time: 0.1394  data_time: 0.0046  memory: 3614  loss: 0.2353  decode.loss_ce: 0.1688  decode.acc_seg: 90.3532  aux.loss_ce: 0.0665  aux.acc_seg: 90.5928
+02/11 20:30:24 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:30:24 - mmengine - INFO - Iter(train) [ 4000/10000]  lr: 9.1046e-03  eta: 0:13:58  time: 0.1392  data_time: 0.0046  memory: 3614  loss: 0.2514  decode.loss_ce: 0.1778  decode.acc_seg: 92.7075  aux.loss_ce: 0.0736  aux.acc_seg: 91.8091
+02/11 20:30:24 - mmengine - INFO - Saving checkpoint at 4000 iterations
+02/11 20:30:26 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:30:27 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:30:29 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:30:30 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:30:31 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:30:32 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:07  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:30:33 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:30:34 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:30:36 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:30:37 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:30:38 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:30:39 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0117  data_time: 0.0009  memory: 799  
+02/11 20:30:39 - mmengine - INFO - per class results:
+02/11 20:30:39 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 89.92 | 95.41 |
+|  building  |  63.3 | 75.13 |
++------------+-------+-------+
+02/11 20:30:39 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.4200  mIoU: 76.6100  mAcc: 85.2700
+02/11 20:30:53 - mmengine - INFO - Iter(train) [ 4100/10000]  lr: 9.0821e-03  eta: 0:13:44  time: 0.1389  data_time: 0.0046  memory: 3614  loss: 0.1935  decode.loss_ce: 0.1365  decode.acc_seg: 89.1105  aux.loss_ce: 0.0570  aux.acc_seg: 88.9020
+02/11 20:31:07 - mmengine - INFO - Iter(train) [ 4200/10000]  lr: 9.0595e-03  eta: 0:13:30  time: 0.1393  data_time: 0.0046  memory: 3614  loss: 0.2527  decode.loss_ce: 0.1794  decode.acc_seg: 93.1954  aux.loss_ce: 0.0733  aux.acc_seg: 91.8187
+02/11 20:31:21 - mmengine - INFO - Iter(train) [ 4300/10000]  lr: 9.0370e-03  eta: 0:13:15  time: 0.1389  data_time: 0.0047  memory: 3614  loss: 0.2571  decode.loss_ce: 0.1823  decode.acc_seg: 88.7322  aux.loss_ce: 0.0747  aux.acc_seg: 88.2035
+02/11 20:31:35 - mmengine - INFO - Iter(train) [ 4400/10000]  lr: 9.0145e-03  eta: 0:13:01  time: 0.1391  data_time: 0.0046  memory: 3614  loss: 0.2877  decode.loss_ce: 0.2047  decode.acc_seg: 91.1559  aux.loss_ce: 0.0830  aux.acc_seg: 90.2085
+02/11 20:31:49 - mmengine - INFO - Iter(train) [ 4500/10000]  lr: 8.9919e-03  eta: 0:12:47  time: 0.1391  data_time: 0.0046  memory: 3614  loss: 0.2705  decode.loss_ce: 0.1913  decode.acc_seg: 87.3125  aux.loss_ce: 0.0792  aux.acc_seg: 86.2702
+02/11 20:31:50 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:13  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:31:51 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:31:52 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0122  data_time: 0.0009  memory: 799  
+02/11 20:31:54 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:31:55 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:31:56 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:07  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:31:57 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:31:58 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:31:59 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:32:01 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:32:02 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0119  data_time: 0.0009  memory: 799  
+02/11 20:32:03 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:32:03 - mmengine - INFO - per class results:
+02/11 20:32:03 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.32 | 97.93 |
+|  building  | 60.56 | 65.66 |
++------------+-------+-------+
+02/11 20:32:03 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.5700  mIoU: 75.4400  mAcc: 81.8000
+02/11 20:32:17 - mmengine - INFO - Iter(train) [ 4600/10000]  lr: 8.9694e-03  eta: 0:12:33  time: 0.1398  data_time: 0.0050  memory: 3614  loss: 0.2362  decode.loss_ce: 0.1667  decode.acc_seg: 90.6820  aux.loss_ce: 0.0694  aux.acc_seg: 90.0249
+02/11 20:32:31 - mmengine - INFO - Iter(train) [ 4700/10000]  lr: 8.9468e-03  eta: 0:12:19  time: 0.1393  data_time: 0.0046  memory: 3614  loss: 0.2227  decode.loss_ce: 0.1577  decode.acc_seg: 94.2898  aux.loss_ce: 0.0650  aux.acc_seg: 93.2746
+02/11 20:32:45 - mmengine - INFO - Iter(train) [ 4800/10000]  lr: 8.9243e-03  eta: 0:12:05  time: 0.1393  data_time: 0.0048  memory: 3614  loss: 0.2679  decode.loss_ce: 0.1900  decode.acc_seg: 93.2943  aux.loss_ce: 0.0779  aux.acc_seg: 93.0502
+02/11 20:32:59 - mmengine - INFO - Iter(train) [ 4900/10000]  lr: 8.9017e-03  eta: 0:11:51  time: 0.1390  data_time: 0.0046  memory: 3614  loss: 0.2356  decode.loss_ce: 0.1671  decode.acc_seg: 96.0603  aux.loss_ce: 0.0684  aux.acc_seg: 95.9636
+02/11 20:33:13 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:33:13 - mmengine - INFO - Iter(train) [ 5000/10000]  lr: 8.8791e-03  eta: 0:11:37  time: 0.1394  data_time: 0.0047  memory: 3614  loss: 0.2348  decode.loss_ce: 0.1642  decode.acc_seg: 85.5026  aux.loss_ce: 0.0707  aux.acc_seg: 83.5751
+02/11 20:33:13 - mmengine - INFO - Saving checkpoint at 5000 iterations
+02/11 20:33:15 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:33:16 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:33:17 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:33:18 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:33:19 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:33:20 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:33:22 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:33:23 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:33:24 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:33:25 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:33:26 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0115  data_time: 0.0009  memory: 799  
+02/11 20:33:27 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:33:28 - mmengine - INFO - per class results:
+02/11 20:33:28 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.38 |  95.6 |
+|  building  | 64.86 | 76.48 |
++------------+-------+-------+
+02/11 20:33:28 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.8300  mIoU: 77.6200  mAcc: 86.0400
+02/11 20:33:41 - mmengine - INFO - Iter(train) [ 5100/10000]  lr: 8.8566e-03  eta: 0:11:24  time: 0.1394  data_time: 0.0047  memory: 3614  loss: 0.2808  decode.loss_ce: 0.1980  decode.acc_seg: 90.0463  aux.loss_ce: 0.0828  aux.acc_seg: 90.1472
+02/11 20:33:55 - mmengine - INFO - Iter(train) [ 5200/10000]  lr: 8.8340e-03  eta: 0:11:10  time: 0.1389  data_time: 0.0046  memory: 3614  loss: 0.2368  decode.loss_ce: 0.1673  decode.acc_seg: 87.7301  aux.loss_ce: 0.0695  aux.acc_seg: 86.1503
+02/11 20:34:09 - mmengine - INFO - Iter(train) [ 5300/10000]  lr: 8.8114e-03  eta: 0:10:56  time: 0.1395  data_time: 0.0047  memory: 3614  loss: 0.2374  decode.loss_ce: 0.1664  decode.acc_seg: 94.6647  aux.loss_ce: 0.0709  aux.acc_seg: 94.3843
+02/11 20:34:23 - mmengine - INFO - Iter(train) [ 5400/10000]  lr: 8.7888e-03  eta: 0:10:42  time: 0.1394  data_time: 0.0048  memory: 3614  loss: 0.2551  decode.loss_ce: 0.1810  decode.acc_seg: 83.3190  aux.loss_ce: 0.0741  aux.acc_seg: 83.4479
+02/11 20:34:37 - mmengine - INFO - Iter(train) [ 5500/10000]  lr: 8.7662e-03  eta: 0:10:28  time: 0.1393  data_time: 0.0047  memory: 3614  loss: 0.2568  decode.loss_ce: 0.1817  decode.acc_seg: 94.0777  aux.loss_ce: 0.0751  aux.acc_seg: 94.1501
+02/11 20:34:38 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:34:40 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:34:41 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:34:42 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:34:43 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:34:44 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:34:45 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:34:46 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0116  data_time: 0.0009  memory: 799  
+02/11 20:34:48 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0116  data_time: 0.0009  memory: 799  
+02/11 20:34:49 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:34:50 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:34:51 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:34:51 - mmengine - INFO - per class results:
+02/11 20:34:51 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.32 | 97.39 |
+|  building  | 61.58 | 68.12 |
++------------+-------+-------+
+02/11 20:34:51 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.6200  mIoU: 75.9500  mAcc: 82.7600
+02/11 20:35:05 - mmengine - INFO - Iter(train) [ 5600/10000]  lr: 8.7436e-03  eta: 0:10:14  time: 0.1395  data_time: 0.0048  memory: 3614  loss: 0.2686  decode.loss_ce: 0.1920  decode.acc_seg: 95.0376  aux.loss_ce: 0.0766  aux.acc_seg: 95.4041
+02/11 20:35:19 - mmengine - INFO - Iter(train) [ 5700/10000]  lr: 8.7210e-03  eta: 0:10:00  time: 0.1387  data_time: 0.0045  memory: 3614  loss: 0.2350  decode.loss_ce: 0.1662  decode.acc_seg: 87.1830  aux.loss_ce: 0.0688  aux.acc_seg: 87.2524
+02/11 20:35:33 - mmengine - INFO - Iter(train) [ 5800/10000]  lr: 8.6983e-03  eta: 0:09:46  time: 0.1394  data_time: 0.0047  memory: 3614  loss: 0.2381  decode.loss_ce: 0.1682  decode.acc_seg: 89.0606  aux.loss_ce: 0.0699  aux.acc_seg: 89.9864
+02/11 20:35:47 - mmengine - INFO - Iter(train) [ 5900/10000]  lr: 8.6757e-03  eta: 0:09:32  time: 0.1392  data_time: 0.0047  memory: 3614  loss: 0.2235  decode.loss_ce: 0.1584  decode.acc_seg: 92.2718  aux.loss_ce: 0.0651  aux.acc_seg: 91.9757
+02/11 20:36:01 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:36:01 - mmengine - INFO - Iter(train) [ 6000/10000]  lr: 8.6531e-03  eta: 0:09:18  time: 0.1394  data_time: 0.0047  memory: 3614  loss: 0.3039  decode.loss_ce: 0.2170  decode.acc_seg: 87.3579  aux.loss_ce: 0.0868  aux.acc_seg: 86.3856
+02/11 20:36:01 - mmengine - INFO - Saving checkpoint at 6000 iterations
+02/11 20:36:03 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:13  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:36:04 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:36:05 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:36:07 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:36:08 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:36:09 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:07  time: 0.0118  data_time: 0.0009  memory: 799  
+02/11 20:36:10 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:36:11 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:36:12 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:36:14 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:36:15 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0112  data_time: 0.0008  memory: 799  
+02/11 20:36:16 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:36:16 - mmengine - INFO - per class results:
+02/11 20:36:16 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.49 | 95.56 |
+|  building  | 65.34 | 77.16 |
++------------+-------+-------+
+02/11 20:36:16 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.9300  mIoU: 77.9100  mAcc: 86.3600
+02/11 20:36:30 - mmengine - INFO - Iter(train) [ 6100/10000]  lr: 8.6304e-03  eta: 0:09:04  time: 0.1391  data_time: 0.0046  memory: 3614  loss: 0.2868  decode.loss_ce: 0.2035  decode.acc_seg: 93.7681  aux.loss_ce: 0.0834  aux.acc_seg: 93.1554
+02/11 20:36:44 - mmengine - INFO - Iter(train) [ 6200/10000]  lr: 8.6078e-03  eta: 0:08:50  time: 0.1390  data_time: 0.0047  memory: 3614  loss: 0.2196  decode.loss_ce: 0.1546  decode.acc_seg: 92.4627  aux.loss_ce: 0.0650  aux.acc_seg: 92.1110
+02/11 20:36:58 - mmengine - INFO - Iter(train) [ 6300/10000]  lr: 8.5851e-03  eta: 0:08:36  time: 0.1391  data_time: 0.0046  memory: 3614  loss: 0.2750  decode.loss_ce: 0.1915  decode.acc_seg: 92.9426  aux.loss_ce: 0.0836  aux.acc_seg: 92.8011
+02/11 20:37:12 - mmengine - INFO - Iter(train) [ 6400/10000]  lr: 8.5625e-03  eta: 0:08:22  time: 0.1392  data_time: 0.0046  memory: 3614  loss: 0.2664  decode.loss_ce: 0.1898  decode.acc_seg: 90.9874  aux.loss_ce: 0.0766  aux.acc_seg: 91.2580
+02/11 20:37:26 - mmengine - INFO - Iter(train) [ 6500/10000]  lr: 8.5398e-03  eta: 0:08:08  time: 0.1391  data_time: 0.0046  memory: 3614  loss: 0.2310  decode.loss_ce: 0.1614  decode.acc_seg: 86.4694  aux.loss_ce: 0.0695  aux.acc_seg: 86.0476
+02/11 20:37:27 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0113  data_time: 0.0008  memory: 799  
+02/11 20:37:28 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:37:29 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:37:30 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:37:31 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:37:32 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:37:34 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:37:35 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:37:36 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:37:37 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:37:38 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:37:39 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:37:39 - mmengine - INFO - per class results:
+02/11 20:37:39 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.12 |  96.8 |
+|  building  | 61.74 | 69.78 |
++------------+-------+-------+
+02/11 20:37:39 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.4800  mIoU: 75.9300  mAcc: 83.2900
+02/11 20:37:53 - mmengine - INFO - Iter(train) [ 6600/10000]  lr: 8.5171e-03  eta: 0:07:54  time: 0.1388  data_time: 0.0045  memory: 3614  loss: 0.2055  decode.loss_ce: 0.1454  decode.acc_seg: 95.9198  aux.loss_ce: 0.0601  aux.acc_seg: 95.8782
+02/11 20:38:07 - mmengine - INFO - Iter(train) [ 6700/10000]  lr: 8.4944e-03  eta: 0:07:40  time: 0.1392  data_time: 0.0047  memory: 3614  loss: 0.2436  decode.loss_ce: 0.1708  decode.acc_seg: 90.0434  aux.loss_ce: 0.0728  aux.acc_seg: 90.0316
+02/11 20:38:21 - mmengine - INFO - Iter(train) [ 6800/10000]  lr: 8.4717e-03  eta: 0:07:26  time: 0.1392  data_time: 0.0046  memory: 3614  loss: 0.2381  decode.loss_ce: 0.1683  decode.acc_seg: 93.2335  aux.loss_ce: 0.0699  aux.acc_seg: 92.3524
+02/11 20:38:35 - mmengine - INFO - Iter(train) [ 6900/10000]  lr: 8.4490e-03  eta: 0:07:12  time: 0.1391  data_time: 0.0046  memory: 3614  loss: 0.2596  decode.loss_ce: 0.1830  decode.acc_seg: 90.2040  aux.loss_ce: 0.0766  aux.acc_seg: 90.0952
+02/11 20:38:49 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:38:49 - mmengine - INFO - Iter(train) [ 7000/10000]  lr: 8.4263e-03  eta: 0:06:58  time: 0.1390  data_time: 0.0047  memory: 3614  loss: 0.2514  decode.loss_ce: 0.1783  decode.acc_seg: 91.4700  aux.loss_ce: 0.0731  aux.acc_seg: 91.6384
+02/11 20:38:49 - mmengine - INFO - Saving checkpoint at 7000 iterations
+02/11 20:38:51 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:38:52 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:38:53 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:38:55 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:38:56 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0116  data_time: 0.0009  memory: 799  
+02/11 20:38:57 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:38:58 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:38:59 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:39:00 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:39:02 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0116  data_time: 0.0009  memory: 799  
+02/11 20:39:03 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:39:04 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:39:04 - mmengine - INFO - per class results:
+02/11 20:39:04 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.52 | 95.71 |
+|  building  | 65.24 | 76.63 |
++------------+-------+-------+
+02/11 20:39:04 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.9500  mIoU: 77.8800  mAcc: 86.1700
+02/11 20:39:18 - mmengine - INFO - Iter(train) [ 7100/10000]  lr: 8.4036e-03  eta: 0:06:44  time: 0.1392  data_time: 0.0047  memory: 3614  loss: 0.2689  decode.loss_ce: 0.1887  decode.acc_seg: 91.2831  aux.loss_ce: 0.0802  aux.acc_seg: 91.1783
+02/11 20:39:32 - mmengine - INFO - Iter(train) [ 7200/10000]  lr: 8.3809e-03  eta: 0:06:30  time: 0.1394  data_time: 0.0047  memory: 3614  loss: 0.2267  decode.loss_ce: 0.1606  decode.acc_seg: 91.7473  aux.loss_ce: 0.0661  aux.acc_seg: 90.6664
+02/11 20:39:46 - mmengine - INFO - Iter(train) [ 7300/10000]  lr: 8.3582e-03  eta: 0:06:16  time: 0.1391  data_time: 0.0047  memory: 3614  loss: 0.1960  decode.loss_ce: 0.1382  decode.acc_seg: 95.2588  aux.loss_ce: 0.0577  aux.acc_seg: 95.1948
+02/11 20:40:00 - mmengine - INFO - Iter(train) [ 7400/10000]  lr: 8.3354e-03  eta: 0:06:02  time: 0.1399  data_time: 0.0051  memory: 3614  loss: 0.2408  decode.loss_ce: 0.1701  decode.acc_seg: 93.2439  aux.loss_ce: 0.0707  aux.acc_seg: 92.1643
+02/11 20:40:14 - mmengine - INFO - Iter(train) [ 7500/10000]  lr: 8.3127e-03  eta: 0:05:48  time: 0.1390  data_time: 0.0047  memory: 3614  loss: 0.2339  decode.loss_ce: 0.1653  decode.acc_seg: 94.3745  aux.loss_ce: 0.0686  aux.acc_seg: 94.5132
+02/11 20:40:15 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0115  data_time: 0.0009  memory: 799  
+02/11 20:40:16 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:40:17 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:40:18 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:40:19 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:40:21 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:40:22 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:40:23 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:40:24 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:40:25 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:40:26 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:40:28 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:40:28 - mmengine - INFO - per class results:
+02/11 20:40:28 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.58 | 97.42 |
+|  building  | 62.65 | 69.24 |
++------------+-------+-------+
+02/11 20:40:28 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.8600  mIoU: 76.6100  mAcc: 83.3300
+02/11 20:40:42 - mmengine - INFO - Iter(train) [ 7600/10000]  lr: 8.2900e-03  eta: 0:05:34  time: 0.1393  data_time: 0.0048  memory: 3614  loss: 0.2332  decode.loss_ce: 0.1657  decode.acc_seg: 86.2546  aux.loss_ce: 0.0675  aux.acc_seg: 85.3348
+02/11 20:40:55 - mmengine - INFO - Iter(train) [ 7700/10000]  lr: 8.2672e-03  eta: 0:05:20  time: 0.1392  data_time: 0.0047  memory: 3614  loss: 0.1866  decode.loss_ce: 0.1312  decode.acc_seg: 93.2807  aux.loss_ce: 0.0554  aux.acc_seg: 93.3982
+02/11 20:41:09 - mmengine - INFO - Iter(train) [ 7800/10000]  lr: 8.2444e-03  eta: 0:05:06  time: 0.1392  data_time: 0.0047  memory: 3614  loss: 0.2500  decode.loss_ce: 0.1781  decode.acc_seg: 90.1000  aux.loss_ce: 0.0719  aux.acc_seg: 91.0715
+02/11 20:41:23 - mmengine - INFO - Iter(train) [ 7900/10000]  lr: 8.2217e-03  eta: 0:04:52  time: 0.1392  data_time: 0.0047  memory: 3614  loss: 0.2428  decode.loss_ce: 0.1710  decode.acc_seg: 87.2709  aux.loss_ce: 0.0719  aux.acc_seg: 86.9830
+02/11 20:41:37 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:41:37 - mmengine - INFO - Iter(train) [ 8000/10000]  lr: 8.1989e-03  eta: 0:04:38  time: 0.1391  data_time: 0.0046  memory: 3614  loss: 0.2370  decode.loss_ce: 0.1663  decode.acc_seg: 95.1898  aux.loss_ce: 0.0707  aux.acc_seg: 93.7787
+02/11 20:41:37 - mmengine - INFO - Saving checkpoint at 8000 iterations
+02/11 20:41:39 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:41:40 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:41:42 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:41:43 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:41:44 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:41:45 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:41:46 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:41:47 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:41:48 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:41:50 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:41:51 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:41:52 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:41:52 - mmengine - INFO - per class results:
+02/11 20:41:52 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.28 | 94.53 |
+|  building  | 66.12 | 80.86 |
++------------+-------+-------+
+02/11 20:41:52 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.8300  mIoU: 78.2000  mAcc: 87.6900
+02/11 20:42:06 - mmengine - INFO - Iter(train) [ 8100/10000]  lr: 8.1761e-03  eta: 0:04:25  time: 0.1393  data_time: 0.0048  memory: 3614  loss: 0.2073  decode.loss_ce: 0.1468  decode.acc_seg: 92.9925  aux.loss_ce: 0.0606  aux.acc_seg: 92.4564
+02/11 20:42:20 - mmengine - INFO - Iter(train) [ 8200/10000]  lr: 8.1533e-03  eta: 0:04:11  time: 0.1395  data_time: 0.0047  memory: 3614  loss: 0.2223  decode.loss_ce: 0.1567  decode.acc_seg: 91.6517  aux.loss_ce: 0.0656  aux.acc_seg: 91.0991
+02/11 20:42:34 - mmengine - INFO - Iter(train) [ 8300/10000]  lr: 8.1305e-03  eta: 0:03:57  time: 0.1392  data_time: 0.0046  memory: 3614  loss: 0.2019  decode.loss_ce: 0.1427  decode.acc_seg: 85.2157  aux.loss_ce: 0.0592  aux.acc_seg: 85.9628
+02/11 20:42:48 - mmengine - INFO - Iter(train) [ 8400/10000]  lr: 8.1077e-03  eta: 0:03:43  time: 0.1399  data_time: 0.0049  memory: 3614  loss: 0.2531  decode.loss_ce: 0.1767  decode.acc_seg: 90.8553  aux.loss_ce: 0.0764  aux.acc_seg: 90.6225
+02/11 20:43:02 - mmengine - INFO - Iter(train) [ 8500/10000]  lr: 8.0849e-03  eta: 0:03:29  time: 0.1400  data_time: 0.0050  memory: 3614  loss: 0.2430  decode.loss_ce: 0.1699  decode.acc_seg: 95.3868  aux.loss_ce: 0.0731  aux.acc_seg: 95.0960
+02/11 20:43:03 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:43:04 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:43:05 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:43:06 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:43:08 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:43:09 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:43:10 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:43:11 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:43:12 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:43:13 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:43:14 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:43:16 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:43:16 - mmengine - INFO - per class results:
+02/11 20:43:16 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.58 |  95.2 |
+|  building  | 66.25 | 79.19 |
++------------+-------+-------+
+02/11 20:43:16 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 92.0500  mIoU: 78.4100  mAcc: 87.2000
+02/11 20:43:30 - mmengine - INFO - Iter(train) [ 8600/10000]  lr: 8.0621e-03  eta: 0:03:15  time: 0.1400  data_time: 0.0051  memory: 3614  loss: 0.2538  decode.loss_ce: 0.1799  decode.acc_seg: 94.0825  aux.loss_ce: 0.0739  aux.acc_seg: 93.8564
+02/11 20:43:44 - mmengine - INFO - Iter(train) [ 8700/10000]  lr: 8.0393e-03  eta: 0:03:01  time: 0.1394  data_time: 0.0047  memory: 3614  loss: 0.2161  decode.loss_ce: 0.1521  decode.acc_seg: 94.6386  aux.loss_ce: 0.0639  aux.acc_seg: 94.7223
+02/11 20:43:58 - mmengine - INFO - Iter(train) [ 8800/10000]  lr: 8.0164e-03  eta: 0:02:47  time: 0.1395  data_time: 0.0047  memory: 3614  loss: 0.2657  decode.loss_ce: 0.1873  decode.acc_seg: 93.4182  aux.loss_ce: 0.0784  aux.acc_seg: 93.3002
+02/11 20:44:12 - mmengine - INFO - Iter(train) [ 8900/10000]  lr: 7.9936e-03  eta: 0:02:33  time: 0.1399  data_time: 0.0049  memory: 3614  loss: 0.2391  decode.loss_ce: 0.1691  decode.acc_seg: 88.3469  aux.loss_ce: 0.0700  aux.acc_seg: 88.5114
+02/11 20:44:26 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:44:26 - mmengine - INFO - Iter(train) [ 9000/10000]  lr: 7.9708e-03  eta: 0:02:19  time: 0.1394  data_time: 0.0048  memory: 3614  loss: 0.2432  decode.loss_ce: 0.1727  decode.acc_seg: 88.3207  aux.loss_ce: 0.0705  aux.acc_seg: 87.7477
+02/11 20:44:26 - mmengine - INFO - Saving checkpoint at 9000 iterations
+02/11 20:44:28 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:44:29 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:44:30 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0115  data_time: 0.0009  memory: 799  
+02/11 20:44:31 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:44:32 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:44:33 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:44:35 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:44:36 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0116  data_time: 0.0009  memory: 799  
+02/11 20:44:37 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0115  data_time: 0.0009  memory: 799  
+02/11 20:44:38 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0116  data_time: 0.0009  memory: 799  
+02/11 20:44:39 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:44:40 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:44:40 - mmengine - INFO - per class results:
+02/11 20:44:40 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.74 | 97.15 |
+|  building  | 63.82 | 71.24 |
++------------+-------+-------+
+02/11 20:44:40 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 92.0400  mIoU: 77.2800  mAcc: 84.1900
+02/11 20:44:54 - mmengine - INFO - Iter(train) [ 9100/10000]  lr: 7.9479e-03  eta: 0:02:05  time: 0.1390  data_time: 0.0047  memory: 3614  loss: 0.2098  decode.loss_ce: 0.1475  decode.acc_seg: 90.8301  aux.loss_ce: 0.0623  aux.acc_seg: 90.9074
+02/11 20:45:08 - mmengine - INFO - Iter(train) [ 9200/10000]  lr: 7.9250e-03  eta: 0:01:51  time: 0.1394  data_time: 0.0048  memory: 3614  loss: 0.2448  decode.loss_ce: 0.1737  decode.acc_seg: 86.9630  aux.loss_ce: 0.0710  aux.acc_seg: 86.9178
+02/11 20:45:22 - mmengine - INFO - Iter(train) [ 9300/10000]  lr: 7.9022e-03  eta: 0:01:37  time: 0.1393  data_time: 0.0047  memory: 3614  loss: 0.2170  decode.loss_ce: 0.1512  decode.acc_seg: 93.6908  aux.loss_ce: 0.0657  aux.acc_seg: 92.6355
+02/11 20:45:36 - mmengine - INFO - Iter(train) [ 9400/10000]  lr: 7.8793e-03  eta: 0:01:23  time: 0.1393  data_time: 0.0048  memory: 3614  loss: 0.2981  decode.loss_ce: 0.2122  decode.acc_seg: 92.6824  aux.loss_ce: 0.0859  aux.acc_seg: 92.2720
+02/11 20:45:50 - mmengine - INFO - Iter(train) [ 9500/10000]  lr: 7.8564e-03  eta: 0:01:09  time: 0.1392  data_time: 0.0047  memory: 3614  loss: 0.2438  decode.loss_ce: 0.1728  decode.acc_seg: 91.8696  aux.loss_ce: 0.0710  aux.acc_seg: 91.6567
+02/11 20:45:51 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:13  time: 0.0118  data_time: 0.0008  memory: 799  
+02/11 20:45:53 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0117  data_time: 0.0008  memory: 799  
+02/11 20:45:54 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:45:55 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:45:56 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:45:57 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:07  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:45:58 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:46:00 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:46:01 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:46:02 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:46:03 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:46:04 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:46:04 - mmengine - INFO - per class results:
+02/11 20:46:04 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background | 90.54 |  95.0 |
+|  building  | 66.39 | 79.92 |
++------------+-------+-------+
+02/11 20:46:04 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 92.0300  mIoU: 78.4600  mAcc: 87.4600
+02/11 20:46:18 - mmengine - INFO - Iter(train) [ 9600/10000]  lr: 7.8335e-03  eta: 0:00:55  time: 0.1393  data_time: 0.0047  memory: 3614  loss: 0.2462  decode.loss_ce: 0.1721  decode.acc_seg: 95.2132  aux.loss_ce: 0.0741  aux.acc_seg: 94.8433
+02/11 20:46:32 - mmengine - INFO - Iter(train) [ 9700/10000]  lr: 7.8106e-03  eta: 0:00:41  time: 0.1394  data_time: 0.0047  memory: 3614  loss: 0.2397  decode.loss_ce: 0.1683  decode.acc_seg: 94.9560  aux.loss_ce: 0.0713  aux.acc_seg: 94.6482
+02/11 20:46:46 - mmengine - INFO - Iter(train) [ 9800/10000]  lr: 7.7877e-03  eta: 0:00:27  time: 0.1390  data_time: 0.0046  memory: 3614  loss: 0.2366  decode.loss_ce: 0.1654  decode.acc_seg: 93.1084  aux.loss_ce: 0.0712  aux.acc_seg: 92.6130
+02/11 20:47:00 - mmengine - INFO - Iter(train) [ 9900/10000]  lr: 7.7648e-03  eta: 0:00:13  time: 0.1397  data_time: 0.0048  memory: 3614  loss: 0.2257  decode.loss_ce: 0.1591  decode.acc_seg: 93.2277  aux.loss_ce: 0.0666  aux.acc_seg: 93.6061
+02/11 20:47:14 - mmengine - INFO - Exp name: pspnet_r50-d8_4xb2-40k_cityscapes-512x1024_20230211_201914
+02/11 20:47:14 - mmengine - INFO - Iter(train) [10000/10000]  lr: 7.7419e-03  eta: 0:00:00  time: 0.1394  data_time: 0.0048  memory: 3614  loss: 0.2364  decode.loss_ce: 0.1634  decode.acc_seg: 94.5648  aux.loss_ce: 0.0729  aux.acc_seg: 93.7893
+02/11 20:47:14 - mmengine - INFO - Saving checkpoint at 10000 iterations
+02/11 20:47:16 - mmengine - INFO - Iter(val) [ 100/1206]    eta: 0:00:12  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:47:17 - mmengine - INFO - Iter(val) [ 200/1206]    eta: 0:00:11  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:47:18 - mmengine - INFO - Iter(val) [ 300/1206]    eta: 0:00:10  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:47:20 - mmengine - INFO - Iter(val) [ 400/1206]    eta: 0:00:09  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:47:21 - mmengine - INFO - Iter(val) [ 500/1206]    eta: 0:00:08  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:47:22 - mmengine - INFO - Iter(val) [ 600/1206]    eta: 0:00:06  time: 0.0115  data_time: 0.0009  memory: 799  
+02/11 20:47:23 - mmengine - INFO - Iter(val) [ 700/1206]    eta: 0:00:05  time: 0.0116  data_time: 0.0009  memory: 799  
+02/11 20:47:24 - mmengine - INFO - Iter(val) [ 800/1206]    eta: 0:00:04  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:47:25 - mmengine - INFO - Iter(val) [ 900/1206]    eta: 0:00:03  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:47:26 - mmengine - INFO - Iter(val) [1000/1206]    eta: 0:00:02  time: 0.0116  data_time: 0.0008  memory: 799  
+02/11 20:47:28 - mmengine - INFO - Iter(val) [1100/1206]    eta: 0:00:01  time: 0.0114  data_time: 0.0008  memory: 799  
+02/11 20:47:29 - mmengine - INFO - Iter(val) [1200/1206]    eta: 0:00:00  time: 0.0115  data_time: 0.0008  memory: 799  
+02/11 20:47:29 - mmengine - INFO - per class results:
+02/11 20:47:29 - mmengine - INFO - 
++------------+-------+-------+
+|   Class    |  IoU  |  Acc  |
++------------+-------+-------+
+| background |  90.6 | 96.56 |
+|  building  | 64.22 | 73.21 |
++------------+-------+-------+
+02/11 20:47:29 - mmengine - INFO - Iter(val) [1206/1206]  aAcc: 91.9600  mIoU: 77.4100  mAcc: 84.8800
